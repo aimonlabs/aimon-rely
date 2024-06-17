@@ -248,3 +248,16 @@ class Client(object):
         run_res = post_request('{}/v1/evaluation-run'.format(AIMON_SDK_BACKEND_URL), headers=headers, data=data)
         return Run(run_res['id'], run_res['evaluation_id'],
                    run_res['run_number'], run_res['creation_time'], run_res['completed_time'], run_res['metadata_'])
+
+
+
+    def get_application_metrics(self, application_id, version, start_timestamp=None, end_timestamp=None):
+        headers = self.create_auth_header()
+        params = {'version': version}
+
+        if start_timestamp:
+            params['start_timestamp'] = start_timestamp.isoformat()
+        if end_timestamp:
+            params['end_timestamp'] = end_timestamp.isoformat()
+
+        return get_request(f'{AIMON_SDK_BACKEND_URL}/v1/application/{application_id}/metrics', headers=headers, params=params)
