@@ -251,13 +251,61 @@ class Client(object):
 
 
 
-    def get_application_metrics(self, application_id, version, start_timestamp=None, end_timestamp=None):
+    def get_evaluations_by_name(self, evaluation_name):
+        """
+        Fetches evaluations by name including their associated run IDs.
+        """
         headers = self.create_auth_header()
-        params = {'version': version}
+        params = {'name': evaluation_name}
+        evaluations = get_request(f'{AIMON_SDK_BACKEND_URL}/v1/evaluations-by-name', headers=headers, params=params)
+        if not evaluations:
+            raise Exception(f"No evaluations found for name: {evaluation_name}")
+        return evaluations
 
+
+
+    def get_application_evaluation_metrics(self, application_name, version='0', start_timestamp=None, end_timestamp=None, evaluation_id=None, evaluation_run_id=None):
+        """
+        Fetches evaluation metrics for a specific application. Can also fetch specific evaluation and run metrics.
+        """
+        headers = self.create_auth_header()
+        params = {
+            'application_name': application_name,
+            'version': version,
+        }
+        if start_timestamp:
+            params['start_timestamp'] = start_timestamp.isoformat()
+        if end_timestamp:
+            params['end_timestamp'] = end_timestamp.isoformat()
+        if evaluation_id:
+            params['evaluation_id'] = evaluation_id
+        if evaluation_run_id:
+            params['evaluation_run_id'] = evaluation_run_id
+
+        metrics = get_request(f'{AIMON_SDK_BACKEND_URL}/v1/application/evaluations/metrics', headers=headers, params=params)
+        if not metrics:
+            raise Exception(f"No metrics found for application: {application_name}, evaluation ID: {evaluation_id}, run ID: {evaluation_run_id}")
+        return metrics
+
+
+
+    def get_application_production_metrics(self, application_name, version='0', start_timestamp=None, end_timestamp=None):
+        """
+        Fetches production metrics for a specific application.
+        """
+        headers = self.create_auth_header()
+        params = {
+            'application_name': application_name,
+            'version': version,
+        }
         if start_timestamp:
             params['start_timestamp'] = start_timestamp.isoformat()
         if end_timestamp:
             params['end_timestamp'] = end_timestamp.isoformat()
 
-        return get_request(f'{AIMON_SDK_BACKEND_URL}/v1/application/{application_id}/metrics', headers=headers, params=params)
+        metrics = get_request(f'{AIMON_SDK_BACKEND_URL}/v1/application/production/metrics', headers=headers, params=params)
+        if not metrics:
+            raise Exception(f"No production metrics found for application: {application_name}")
+        return metrics
+    
+   
