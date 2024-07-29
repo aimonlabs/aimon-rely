@@ -2,6 +2,11 @@ name: Publish Python Package
 
 on:
   workflow_dispatch:
+    inputs:
+      release_notes:
+        description: "Release Notes"
+        required: true
+        type: string
 
 jobs:
   build:
@@ -21,6 +26,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install setuptools wheel twine
 
+      - name: Update CHANGELOG.md
+        run: |
+          echo "## $(date +'%Y-%m-%d')\n\n${{ github.event.inputs.release_notes }}" >> CHANGELOG.md
+
+      - name: Commit CHANGELOG.md
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add CHANGELOG.md
+          git commit -m "Update CHANGELOG.md for version $(date +'%Y-%m-%d')"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build package
         run: |
           python setup.py sdist bdist_wheel
@@ -31,3 +50,16 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         run: |
           twine upload dist/*
+
+      - name: Create release notes file
+        run: |
+          mkdir -p releases
+          echo "${{ github.event.inputs.release_notes }}" > releases/$(date +'%Y%m%d%H%M%S')_release_notes.txt
+
+      - name: Commit release notes file
+        run: |
+          git add releases/
+          git commit -m "Add release notes for version $(date +'%Y%m%d%H%M%S')"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
