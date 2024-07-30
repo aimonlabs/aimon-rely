@@ -4,13 +4,6 @@ from setuptools import setup, find_packages
 with open("README_PyPi.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-# Read the content of your CHANGELOG file
-with open("CHANGELOG.md", "r", encoding="utf-8") as ch:
-    changelog = ch.read()
-
-# Append changelog to long description
-long_description += '\n\n' + changelog
-
 setup(
     name='aimon',
     python_requires='>3.8.0',
